@@ -1,0 +1,120 @@
+{
+  "info": {
+    "name": "Realtime Collab - Full API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_postman_id": "realtime-collab-collection"
+  },
+  "item": [
+    {
+      "name": "AUTH",
+      "item": [
+        {
+          "name": "Signup",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\": \"{{email}}\", \"password\": \"{{password}}\"}"
+            },
+            "url": "{{base_url}}/auth/signup"
+          }
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var response = pm.response.json();",
+                  "pm.environment.set('accessToken', response.accessToken);",
+                  "pm.environment.set('refresh_token', response.refresh_token);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\": \"{{email}}\", \"password\": \"{{password}}\"}"
+            },
+            "url": "{{base_url}}/auth/login"
+          }
+        },
+        {
+          "name": "Refresh Token",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"refreshToken\": \"{{refresh_token}}\"}"
+            },
+            "url": "{{base_url}}/auth/refresh"
+          }
+        }
+      ]
+    },
+    {
+      "name": "HEALTH",
+      "item": [
+        {
+          "name": "API Health",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/health"
+          }
+        },
+        {
+          "name": "Redis Health",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/health/redis"
+          }
+        }
+      ]
+    },
+    {
+      "name": "WEBSOCKET",
+      "item": [
+        {
+          "name": "WebSocket Connect (Socket.IO)",
+          "_type": "websocket",
+          "request": {
+            "url": "{{ws_url}}?token={{accessToken}}",
+            "method": "GET"
+          }
+        },
+        {
+          "name": "Join Room",
+          "_type": "websocket",
+          "request": {
+            "url": "{{ws_url}}?token={{accessToken}}",
+            "body": {
+              "message": "{\"event\":\"join\", \"data\":\"{{room}}\"}"
+            }
+          }
+        },
+        {
+          "name": "Send Message",
+          "_type": "websocket",
+          "request": {
+            "url": "{{ws_url}}?token={{accessToken}}",
+            "body": {
+              "message": "{\"event\":\"message\", \"data\":{\"room\":\"{{room}}\", \"text\":\"Hello from Postman!\"}}"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

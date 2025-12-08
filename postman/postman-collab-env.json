@@ -1,0 +1,13 @@
+{
+    "id": "realtime-collab-env",
+    "name": "Realtime Collab Environment",
+    "values": [
+        { "key": "base_url", "value": "http://localhost:3000", "type": "default" },
+        { "key": "ws_url", "value": "ws://localhost:3000", "type": "default" },
+        { "key": "email", "value": "test@test.com", "type": "default" },
+        { "key": "password", "value": "123456", "type": "default" },
+        { "key": "accessToken", "value": "", "type": "default" },
+        { "key": "refresh_token", "value": "", "type": "default" },
+        { "key": "room", "value": "room1", "type": "default" }
+    ]
+}

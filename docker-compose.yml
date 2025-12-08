@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  redis:
+    image: redis:7.2
+    container_name: realtime-redis
+    ports:
+      - "6379:6379"
+    restart: always
+
+  mongo:
+    image: mongo:6
+    container_name: realtime-mongo
+    environment:
+      MONGO_INITDB_DATABASE: realtime-collab
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    restart: always
+
+volumes:
+  mongo_data:
