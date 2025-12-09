@@ -59,4 +59,22 @@ export class RedisService implements OnModuleInit {
     async sRem(key: string, value: string) {
         return this.client.sRem(key, value);
     }
+
+    async xRange(
+        stream: string,
+        start: string,
+        end: string,
+        options?: { COUNT?: number },
+    ) {
+        return this.redis.xRange(stream, start, end, options);
+    }
+
+    async xRevRange(
+        stream: string,
+        end: string,
+        start: string,
+        options?: { COUNT?: number },
+    ) {
+        return this.redis.xRevRange(stream, end, start, options);
+    }
 }

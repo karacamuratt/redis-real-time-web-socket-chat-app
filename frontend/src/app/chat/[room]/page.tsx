@@ -28,6 +28,28 @@ export default function ChatRoom() {
     }, []);
 
     useEffect(() => {
+        if (!room) return;
+
+        async function loadHistory() {
+            try {
+                const res = await fetch(`http://localhost:3000/chat/history/${room}?count=50`);
+                const data = await res.json();
+
+                if (Array.isArray(data.history)) {
+                    setMessages(data.history);
+                } else {
+                    console.warn("Invalid history format", data);
+                    setMessages([]);
+                }
+            } catch (err) {
+                console.error("History fetch error:", err);
+            }
+        }
+
+        loadHistory();
+    }, [room]);
+
+    useEffect(() => {
         if (!room) {
             console.log("room is not existing...");
             return;
@@ -47,7 +69,7 @@ export default function ChatRoom() {
             setMessages((prev) => [...prev, m]);
         });
 
-         s.on("message:local", (m) => {
+        s.on("message:local", (m) => {
             console.log("LOCAL MESSAGE:", m);
             setMessages((prev) => [...prev, m]);
         });
