@@ -13,7 +13,7 @@ export class StreamConsumer implements OnModuleInit {
         private readonly redis: RedisService,
         @InjectModel(ChatMessage.name)
         private readonly chatModel: Model<ChatMessage>,
-    ) {}
+    ) { }
 
     async onModuleInit() {
         const streamKey = "stream:room:general";
@@ -25,6 +25,8 @@ export class StreamConsumer implements OnModuleInit {
                 "$",
                 { MKSTREAM: true }
             );
+
+            await this.recoverPending(streamKey);
         } catch (e) {
             if (!e.message.includes("BUSYGROUP")) {
                 this.logger.error("xGroupCreate error:", e);
@@ -32,6 +34,53 @@ export class StreamConsumer implements OnModuleInit {
         }
 
         this.consume(streamKey);
+    }
+
+    async recoverPending(streamKey: string) {
+        this.logger.warn("Checking for pending messages...");
+
+        const summary = await (this.redis.redis as any).xPending(streamKey, this.group);
+
+        if (!summary?.pending || summary.pending.length === 0) {
+            this.logger.log("No pending messages.");
+            return;
+        }
+
+        this.logger.warn(`Found ${summary.pending.length} pending messages.`);
+
+        for (const item of summary.pending) {
+            const id = item.id;
+
+            this.logger.warn(`Reclaiming message: ${id}`);
+
+            const claimed = await this.redis.redis.xClaim(
+                streamKey,
+                this.group,
+                "consumer-1",
+                0, // min idle time, 0
+                id
+            );
+
+            if (claimed.length === 0) {
+                this.logger.error("Claim failed for", id);
+                continue;
+            }
+
+            const msg = claimed[0];
+            const data = (msg as any).message;
+
+            await this.chatModel.create({
+                room: streamKey.replace("stream:room:", ""),
+                user: data.user,
+                text: data.text,
+                timestamp: Number(data.timestamp),
+            });
+
+            this.logger.log(`Recovered + saved: ${data.text}`);
+
+            // ACK
+            await this.redis.redis.xAck(streamKey, this.group, id);
+        }
     }
 
     async consume(streamKey: string) {
